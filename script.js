@@ -1,4 +1,5 @@
 const poke_container = document.getElementById('poke-container')
+const searchInput = document.getElementById('search-input')
 const pokemon_count = 150
 const colors = {
     fire: '#FDDFDF',
@@ -18,6 +19,7 @@ const colors = {
 }
 
 const main_types = Object.keys(colors)
+let allPokemon = []
 
 const fetchPokemons = async () => {
     for(let i = 1; i <= pokemon_count; i++) {
@@ -29,12 +31,16 @@ const getPokemon = async (id) => {
     const url = `https://pokeapi.co/api/v2/pokemon/${id}`
     const res = await fetch(url)
     const data = await res.json()
+    allPokemon.push(data)
     createPokemonCard(data)
 }
 
 const createPokemonCard = (pokemon) => {
     const pokemonEl = document.createElement('div')
     pokemonEl.classList.add('pokemon')
+    pokemonEl.setAttribute('data-name', pokemon.name)
+    pokemonEl.setAttribute('data-type', pokemon.types.map(type => type.type.name).join(' '))
+    pokemonEl.setAttribute('data-abilities', pokemon.abilities.map(ability => ability.ability.name).join(' '))
 
     const name = pokemon.name[0].toUpperCase() + pokemon.name.slice(1)
     const id = pokemon.id.toString().padStart(3, '0')
@@ -60,4 +66,28 @@ const createPokemonCard = (pokemon) => {
 
     poke_container.appendChild(pokemonEl)
 }
+
+const filterPokemon = (searchTerm) => {
+    const pokemonCards = document.querySelectorAll('.pokemon')
+    searchTerm = searchTerm.toLowerCase()
+    
+    pokemonCards.forEach(card => {
+        const name = card.getAttribute('data-name')
+        const type = card.getAttribute('data-type')
+        const abilities = card.getAttribute('data-abilities')
+        
+        if (name.includes(searchTerm) || 
+            type.includes(searchTerm) || 
+            abilities.includes(searchTerm)) {
+            card.style.display = 'block'
+        } else {
+            card.style.display = 'none'
+        }
+    })
+}
+
+searchInput.addEventListener('input', (e) => {
+    filterPokemon(e.target.value)
+})
+
 fetchPokemons()
